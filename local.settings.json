@@ -1,0 +1,26 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "AzureWebJobsDashboard": "UseDevelopmentStorage=true",
+
+    "EncompassApiBaseURL": "https://api.elliemae.com",
+    "EncompassUsername": "gananth@encompass:TEBE11212117",
+    "EncompassPassword": "Welcome@123",
+    "EncompassClientId": "2n4b1uv",
+    "EncompassClientSecret": "*GjzokQW3Gw9bQtVQ#B5n$EHyi5yHW&jVIbTS0Ql7M7C38CHDcccm4icw56uAa0h",
+    "EncompassScope": "lp",
+    "EncompassTokenURL": "/oauth2/v1/token",
+    "EncompassLoanPipelineURL": "/encompass/v3/loanPipeline",
+    "EncompassGetDocumentsURL": "/encompass/v3/loans/{loanId}/attachments?includeRemoved=true",
+    "DocumentPackageName": "Vista Point - Due Diligence Package",
+
+
+    "LauraMacBaseUrl": "https://api.lauramac.com",
+    "LauraMacClientId": "your-client-id",
+    "LauraMacClientSecret": "your-client-secret",
+    "DocumentSyncIntervalMinutes": "5"
+
+  }
+}
