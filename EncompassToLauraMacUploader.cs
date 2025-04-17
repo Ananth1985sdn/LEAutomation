@@ -34,7 +34,7 @@ namespace LEAutomation.DocumentHandlers
             }
         }
 
-        public async Task<string> GetEncompassAccessTokenAsync(ILogger log)
+        private async Task<string> GetEncompassAccessTokenAsync(ILogger log)
         {
             var encompassBaseURL = Environment.GetEnvironmentVariable("EncompassApiBaseURL");
             var tokenUrl = Environment.GetEnvironmentVariable("EncompassTokenUrl");
@@ -72,7 +72,7 @@ namespace LEAutomation.DocumentHandlers
             return null;
         }
 
-        public async Task CallLoanPipelineApiAsync(string token, ILogger log)
+        private async Task CallLoanPipelineApiAsync(string token, ILogger log)
         {
             var encompassBaseURL = Environment.GetEnvironmentVariable("EncompassApiBaseURL");
             var pipeLineUrl = Environment.GetEnvironmentVariable("EncompassLoanPipelineURL");
