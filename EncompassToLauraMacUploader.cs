@@ -183,9 +183,12 @@ namespace LEAutomation.DocumentHandlers
                                 {
                                    log.LogInformation($"Attachment Title: {attachment.Title}, CreatedBy: {attachment.AssignedTo?.EntityName}, File Size: {attachment.FileSize}");
                                    var url = await GetDocumentURL(loan.LoanId,attachment.Id,token);
-                                    if (url != null)
-                                        await DownloadDocument(loan.LoanId, loan.Fields.Field4002, url, log);
+                                    {
+                                        var url = await GetDocumentURL(loan.LoanId, attachment.Id, token);
+                                        if (url != null)
+                                            await DownloadDocument(loan.LoanId, loan.Fields.Field4002, url, log);
                                     break;
+                                    continue;
                                 }
                             }
                         }
@@ -306,6 +309,7 @@ namespace LEAutomation.DocumentHandlers
                     else
                     {
                         return attachment.originalUrls?.ToString() ?? throw new Exception("Original URLs not found.");
+                        return pages[0].Url;
                     }
                 }
 

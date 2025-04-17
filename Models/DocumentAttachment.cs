@@ -10,7 +10,7 @@ namespace LEAutomation.Models
     {
         public string Id { get; set; }
         public List<DocumentPage> Pages { get; set; }
-        public string originalUrls { get; set; }
+        public List<string> originalUrls { get; set; }
 
     }
 }
