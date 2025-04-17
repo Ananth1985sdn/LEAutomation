@@ -1,0 +1,14 @@
+{
+  "profiles": {
+    "LEAutomation": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7111"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "httpPort": 32308,
+      "useSSL": false
+    }
+  }
+}
