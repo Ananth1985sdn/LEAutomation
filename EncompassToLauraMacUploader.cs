@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
+//using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 using LEAutomation.Models;
@@ -180,10 +182,10 @@ namespace LEAutomation.DocumentHandlers
                                 else
                                 {
                                    log.LogInformation($"Attachment Title: {attachment.Title}, CreatedBy: {attachment.AssignedTo?.EntityName}, File Size: {attachment.FileSize}");
-                                   Attachment sigleDocResponse = GetSingleAttachment(attachment.Id);
-                                   string documentURL = GetDocumentURL(sigleDocResponse.Id);
-                                    if (documentURL != null)
-                                        await DownloadDocument(documentURL);
+                                   var url = await GetDocumentURL(loan.LoanId,attachment.Id,token);
+                                    if (url != null)
+                                        await DownloadDocument(loan.LoanId, loan.Fields.Field4002, url, log);
+                                    break;
                                 }
                             }
                         }
@@ -207,19 +209,109 @@ namespace LEAutomation.DocumentHandlers
             }
         }
 
-        private async Task DownloadDocument(string documentURL)
+        private async Task DownloadDocument(string loanId,string lastName, string documentURL, ILogger log)
         {
-            throw new NotImplementedException();
+
+            if (string.IsNullOrWhiteSpace(documentURL))
+            {
+                throw new ArgumentException("Document URL cannot be null or empty.", nameof(documentURL));
+            }
+
+            using (var httpClient = new HttpClient())
+            {
+
+                var request = new HttpRequestMessage(HttpMethod.Get, documentURL);
+                var response = await httpClient.SendAsync(request);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var errorContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    throw new Exception($"Failed to download document. Status: {response.StatusCode}, Response: {errorContent}");
+                }
+                var contentType = response.Content.Headers.ContentType?.MediaType;
+                log.LogInformation($"Content-Type: {contentType}");
+                var pdfBytes = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+
+                var fileName = loanId+"_"+lastName+"_shippingfiles.pdf";
+
+                #if DEBUG
+                // Local development - use project Downloads folder
+                var downloadsPath = Path.Combine(Directory.GetCurrentDirectory(), "Downloads");
+                #else
+                var downloadsPath = Path.Combine(Path.GetTempPath(), "Downloads");
+                #endif
+
+                if (!Directory.Exists(downloadsPath))
+                {
+                    Directory.CreateDirectory(downloadsPath);
+                }
+
+                var filePath = Path.Combine(downloadsPath, fileName);
+
+                await File.WriteAllBytesAsync(filePath, pdfBytes).ConfigureAwait(false);
+                                        
+                Console.WriteLine($"PDF downloaded successfully to: {filePath}");
+            }
         }
 
-        private string GetDocumentURL(string id)
+        private async Task<string> GetDocumentURL(string loanId, string attachmentId, string accessToken)
         {
-            throw new NotImplementedException();
-        }
+            var encompassBaseURL = Environment.GetEnvironmentVariable("EncompassApiBaseURL");
+            var documentURL = Environment.GetEnvironmentVariable("EncompassGetDocumentURL");
 
-        private Attachment GetSingleAttachment(string id)
-        {
-            throw new NotImplementedException();
+            if (string.IsNullOrWhiteSpace(encompassBaseURL) || string.IsNullOrWhiteSpace(documentURL))
+            {
+                throw new InvalidOperationException("Missing environment variables for Encompass API base URL or document URL endpoint.");
+            }
+
+            var documentURLEndpoint = documentURL.Replace("{loanId}", loanId);
+            var requestUrl = $"{encompassBaseURL.TrimEnd('/')}{documentURLEndpoint}";
+
+            using (var httpClient = new HttpClient())
+            {
+                httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+                var payload = new
+                {
+                    attachments = new[] { attachmentId }
+                };
+
+                var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+                var response = await httpClient.PostAsync(requestUrl, content).ConfigureAwait(false);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var error = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                    throw new Exception($"Failed to get document URL. Status: {response.StatusCode}, Response: {error}");
+                }
+
+                var json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                var responseObject = JsonConvert.DeserializeObject<DownloadUrlResponse>(json);
+
+                if (responseObject?.Attachments == null || responseObject.Attachments.Count == 0)
+                {
+                    throw new Exception("No attachments found in the response.");
+                }
+
+                var attachment = responseObject.Attachments[0];
+                var pages = attachment?.Pages;
+
+                if (pages != null && pages.Count > 0)
+                {
+                    if (pages.Count == 1)
+                    {
+                        return pages[0].Url;
+                    }
+                    else
+                    {
+                        return attachment.originalUrls?.ToString() ?? throw new Exception("Original URLs not found.");
+                    }
+                }
+
+                throw new Exception("No pages found for the attachment.");
+            }
         }
+        
     }
 }

@@ -14,6 +14,7 @@
     "EncompassTokenURL": "/oauth2/v1/token",
     "EncompassLoanPipelineURL": "/encompass/v3/loanPipeline",
     "EncompassGetDocumentsURL": "/encompass/v3/loans/{loanId}/attachments?includeRemoved=true",
+    "EncompassGetDocumentURL": "/encompass/v3/loans/{loanId}/attachmentDownloadUrl",
     "DocumentPackageName": "Vista Point - Due Diligence Package",
 
 
