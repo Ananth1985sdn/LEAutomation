@@ -151,7 +151,7 @@ namespace LEAutomation.DocumentHandlers
                 {
                     var loans = JsonConvert.DeserializeObject<List<Loan>>(result);
                     log.LogInformation($"Number of Loans: {loans.Count}");
-                    
+
                     var documentsHttpClient = new HttpClient();
                     documentsHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                     documentsHttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -181,14 +181,11 @@ namespace LEAutomation.DocumentHandlers
                                     continue;
                                 else
                                 {
-                                   log.LogInformation($"Attachment Title: {attachment.Title}, CreatedBy: {attachment.AssignedTo?.EntityName}, File Size: {attachment.FileSize}");
-                                   var url = await GetDocumentURL(loan.LoanId,attachment.Id,token);
-                                    {
-                                        var url = await GetDocumentURL(loan.LoanId, attachment.Id, token);
-                                        if (url != null)
-                                            await DownloadDocument(loan.LoanId, loan.Fields.Field4002, url, log);
+                                    log.LogInformation($"Attachment Title: {attachment.Title}, CreatedBy: {attachment.AssignedTo?.EntityName}, File Size: {attachment.FileSize}");
+                                    var url = await GetDocumentURL(loan.LoanId, attachment.Id, token);
+                                    if (url != null)
+                                        await DownloadDocument(loan.LoanId, loan.Fields.Field4002, url, log);
                                     break;
-                                    continue;
                                 }
                             }
                         }
@@ -212,7 +209,7 @@ namespace LEAutomation.DocumentHandlers
             }
         }
 
-        private async Task DownloadDocument(string loanId,string lastName, string documentURL, ILogger log)
+        private async Task DownloadDocument(string loanId, string lastName, string documentURL, ILogger log)
         {
 
             if (string.IsNullOrWhiteSpace(documentURL))
@@ -235,10 +232,9 @@ namespace LEAutomation.DocumentHandlers
                 log.LogInformation($"Content-Type: {contentType}");
                 var pdfBytes = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
 
-                var fileName = loanId+"_"+lastName+"_shippingfiles.pdf";
+                var fileName = loanId + "_" + lastName + "_shippingfiles.pdf";
 
                 #if DEBUG
-                // Local development - use project Downloads folder
                 var downloadsPath = Path.Combine(Directory.GetCurrentDirectory(), "Downloads");
                 #else
                 var downloadsPath = Path.Combine(Path.GetTempPath(), "Downloads");
@@ -252,7 +248,7 @@ namespace LEAutomation.DocumentHandlers
                 var filePath = Path.Combine(downloadsPath, fileName);
 
                 await File.WriteAllBytesAsync(filePath, pdfBytes).ConfigureAwait(false);
-                                        
+
                 Console.WriteLine($"PDF downloaded successfully to: {filePath}");
             }
         }
@@ -308,14 +304,13 @@ namespace LEAutomation.DocumentHandlers
                     }
                     else
                     {
-                        return attachment.originalUrls?.ToString() ?? throw new Exception("Original URLs not found.");
-                        return pages[0].Url;
+                        return attachment.originalUrls?[0].ToString() ?? throw new Exception("Original URLs not found.");
                     }
                 }
 
                 throw new Exception("No pages found for the attachment.");
             }
         }
-        
+
     }
 }
