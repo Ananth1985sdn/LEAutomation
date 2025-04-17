@@ -304,7 +304,18 @@ namespace LEAutomation.DocumentHandlers
                     }
                     else
                     {
-                        return attachment.originalUrls?[0].ToString() ?? throw new Exception("Original URLs not found.");
+                        if (attachment.originalUrls != null && attachment.originalUrls.Count > 0)
+                        {
+                            return attachment.originalUrls[0];
+                        }
+                        else if (attachment.Pages != null && attachment.Pages.Count > 0)
+                        {
+                            return attachment.Pages[0].Url;
+                        }
+                        else
+                        {
+                            throw new Exception("No valid document URL found.");
+                        }
                     }
                 }
 
